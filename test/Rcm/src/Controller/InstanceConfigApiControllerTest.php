@@ -58,7 +58,6 @@ class InstanceConfigApiControllerTest extends \PHPUnit_Framework_TestCase
 
         $unit = new InstanceConfigApiController();
         $unit->setServiceLocator($serviceMgr);
-
         $response = $unit->get('778');
         $this->assertEquals(
             401,
