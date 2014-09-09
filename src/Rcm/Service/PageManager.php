@@ -49,6 +49,8 @@ class PageManager extends ContainerAbstract
 
     protected $layoutValidator;
 
+    protected $pages;
+
     /**
      * Constructor
      *
@@ -121,13 +123,20 @@ class PageManager extends ContainerAbstract
             throw new \RuntimeException('Invalid Site ID');
         }
 
-        return $this->repository->findOneBy(
+        if (!empty($this->pages[$name])) {
+            return $this->pages[$name];
+        }
+
+        $page = $this->repository->findOneBy(
             array(
                 'name' => $name,
                 'pageType' => $pageType,
                 'site' => $siteId
             )
         );
+
+        $this->pages[$name] = $page;
+        return $page;
     }
 
     /**
@@ -196,16 +205,16 @@ class PageManager extends ContainerAbstract
     }
 
     /**
-     * @param integer      $pageIdToCopy Id of page to copy
-     * @param string       $newPageName  New Page name or URL.  Must not contain spaces.
-     * @param string       $author       New Page Author
-     * @param string       $newPageTitle New Page Title
-     * @param integer|null $pageRevision Revision Id to use for copy.  Default is current revision
-     * @param string       $newPageType  New Page type.  Defaults to "n"
-     * @param integer|null $siteId       Site Id to copy page to
-     *
-     * @throws \Rcm\Exception\InvalidArgumentException
-     */
+ * @param integer      $pageIdToCopy Id of page to copy
+ * @param string       $newPageName  New Page name or URL.  Must not contain spaces.
+ * @param string       $author       New Page Author
+ * @param string       $newPageTitle New Page Title
+ * @param integer|null $pageRevision Revision Id to use for copy.  Default is current revision
+ * @param string       $newPageType  New Page type.  Defaults to "n"
+ * @param integer|null $siteId       Site Id to copy page to
+ *
+ * @throws \Rcm\Exception\InvalidArgumentException
+ */
     public function copyPage(
         $pageIdToCopy,
         $newPageName,
@@ -239,6 +248,25 @@ class PageManager extends ContainerAbstract
             $pageRevision,
             $newPageType
         );
+    }
+
+    /**
+     * @param integer      $pageRevision    Id of page to copy
+     *
+     * @return \Rcm\Entity\Page|null
+     * @throws \Rcm\Exception\InvalidArgumentException
+     */
+    public function publishPageRevision(
+        $pageRevision
+    ) {
+
+        if (!is_numeric($pageRevision)) {
+            throw new InvalidArgumentException(
+                'Invalid Page Revision Id.'
+            );
+        }
+
+        return $this->repository->publishPageRevision($pageRevision);
     }
 
     /**

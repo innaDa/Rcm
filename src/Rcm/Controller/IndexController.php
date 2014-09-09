@@ -157,15 +157,23 @@ class IndexController extends AbstractActionController
 
         $this->pageInfo = $pageInfo;
 
-        if (!empty($pageInfo['siteLayoutOverride'])) {
-            $layoutView = $this->layout();
+        /** @var ViewModel $layoutView */
+        $layoutView = $this->layout();
 
+        if (!empty($pageInfo['siteLayoutOverride'])) {
             $layoutTemplatePath = $this->layoutManager->getSiteLayout(
                 $pageInfo['siteLayoutOverride']
             );
 
             $layoutView->setTemplate('layout/' . $layoutTemplatePath);
         }
+
+        if ($pageInfo['currentRevisionId'] != $pageInfo['revision']['revisionId']) {
+            $layoutView->setVariable('rcmDraft', true);
+        }
+
+        $layoutView->setVariable('pageInfo', $pageInfo);
+        $layoutView->setVariable('shortRevList', $this->getShortRevisionList());
 
         $viewModel = new ViewModel(array('pageInfo' => $pageInfo));
 
@@ -226,5 +234,67 @@ class IndexController extends AbstractActionController
         }
 
         return false;
+    }
+
+    public function getShortRevisionList()
+    {
+        $allowed = $this->rcmUserIsAllowed(
+            'sites.' . $this->siteId,
+            'admin',
+            'Rcm\Acl\ResourceProvider'
+        );
+
+        if (!$allowed) {
+            return array();
+        }
+
+        $page = $this->pageManager->getPageByName($this->pageName, $this->pageType);
+
+        if (empty($page)) {
+            return array();
+        }
+
+        $revisions = array(
+            'Live' => $page->getCurrentRevision(),
+            'Staged' => $page->getStagedRevision(),
+            'Draft' => $page->getLastSavedDraftRevision(),
+        );
+
+        $return = array();
+        $selected = 'Draft';
+
+        /** @var \Rcm\Entity\Revision $revision */
+        foreach ($revisions as $key => $revision) {
+            if (empty($revision)) {
+                continue;
+            }
+
+            $return[$key] = array(
+                'href' => $this->urlToPage(
+                    $this->pageName,
+                    $this->pageType,
+                    $revision->getRevisionId()
+                ),
+
+                'author' => $revision->getAuthor(),
+                'date' => $revision->getCreatedDate(),
+                'selected' => false,
+            );
+
+            if ($this->pageRevisionId == $revision->getRevisionId()) {
+                $return[$key]['selected'] = true;
+                $selected = $key;
+            }
+
+            if ($key == 'Live') {
+                $return[$key]['href'] = $this->urlToPage(
+                    $this->pageName,
+                    $this->pageType
+                );
+            }
+        }
+
+        $return['current'] = $selected;
+        return $return;
     }
 }

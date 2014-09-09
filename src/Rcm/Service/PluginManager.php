@@ -256,15 +256,15 @@ class PluginManager
             'pluginInstanceId' => $pluginInstanceId,
         );
 
-        if (isset($this->config['rcmPlugin'][$pluginName]['editJs'])) {
-            $return['editJs']
-                = $this->config['rcmPlugin'][$pluginName]['editJs'];
-        }
-
-        if (isset($this->config['rcmPlugin'][$pluginName]['editCss'])) {
-            $return['editCss']
-                = $this->config['rcmPlugin'][$pluginName]['editCss'];
-        }
+//        if (isset($this->config['rcmPlugin'][$pluginName]['editJs'])) {
+//            $return['editJs']
+//                = $this->config['rcmPlugin'][$pluginName]['editJs'];
+//        }
+//
+//        if (isset($this->config['rcmPlugin'][$pluginName]['editCss'])) {
+//            $return['editCss']
+//                = $this->config['rcmPlugin'][$pluginName]['editCss'];
+//        }
 
         if (isset($this->config['rcmPlugin'][$pluginName]['display'])) {
             $return['displayName']
@@ -625,6 +625,7 @@ class PluginManager
 
     /**
      * Returns an array the represents the available plugins
+     *
      * @return array
      */
     public function listAvailablePluginsByType()
@@ -644,6 +645,7 @@ class PluginManager
                 $icon = $data['icon'];
             }
             $list[$type][$name] = [
+                'name' => $name,
                 'displayName' => $displayName,
                 'icon' => $icon,
                 'siteWide' => false
